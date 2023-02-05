@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-function Navigation ()  {
+() => {
   return (
     <nav>
       <Link href="/reducer-form">Reducer Form</Link>
@@ -11,6 +11,3 @@ function Navigation ()  {
     </nav>
   )
 }
-
-
-export default Navigation;

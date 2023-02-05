@@ -67,7 +67,7 @@ export default function HookFormHOC(Component, { baseFormId, onSubmit }) {
           handleFieldBlur(...args)
         },
         id: `${formId}__${name}`,
-        'aria-described-by': `${formId}__${name}__errors`
+        'aria-describedby': `${formId}__${name}__errors`
       }
     }, [handleFieldBlur])
 

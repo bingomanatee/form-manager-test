@@ -1,0 +1,40 @@
+
+.container {
+  margin: 3rem;
+  padding: 2rem;
+}
+
+.fieldSection {
+  margin-bottom: 0.5rem;
+  border: 1px solid lightgray;
+  padding: 0.5rem;
+}
+
+.field {
+  display: flex;
+  max-width: 300px;
+  flex-direction: row;
+  justify-content: stretch;
+
+  input {
+    flex-grow: 1;
+  }
+
+  label {
+    width: max(200px, 33%);
+    flex-grow: 0;
+  }
+}
+
+.submitButton {
+  background: blue;
+  color: white;
+  font-weight: bold;
+  border: none;
+
+  &:disabled {
+    background: lightgray;
+  }
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}

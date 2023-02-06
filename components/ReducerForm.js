@@ -1,38 +1,47 @@
 import styles from '../styles/form.module.scss'
 import { FormErrorMessage } from "@/components/ReactHookFormError"
-import { useCallback, useMemo, useReducer } from "react"
+import { useCallback, useEffect, useMemo, useReducer } from "react"
 import formReducer, {
   errorMessage,
-  fieldValues,
-  generateHooks,
+  inputValues,
+  generateInputHooks,
   initialFromConfig,
-  submitFactory
+  handleSubmit
 } from "@/lib/form-reducer"
-import uniqueContext from "@/components/uniqueContext"
-import { config } from "@/components/config"
+import { config } from "@/lib/config"
+const formId ='sample-reducer-form';
 
-export default function ReducerForm() {
-  const formId = useMemo(() => uniqueContext('sample-reducer-form'), [])
+export default function ReducerForm({onSubmit}) {
   const [formState, dispatch] = useReducer(formReducer(config), { config, formId }, initialFromConfig)
-
+  /*
+  hooks are a map of the handlers embedded into inputs keyed by name
+   */
   const hooks = useMemo(() => {
     return new Map(
-      config.map((config) => generateHooks(config, dispatch, formState.formId))
+      config.map((config) => generateInputHooks(config, dispatch, formId))
     )
-  }, [dispatch, formState.formId])
+  }, [dispatch, config])
 
-  const onSubmit = useCallback((e) => submitFactory(dispatch)(e), [dispatch])
+  const doSubmit = useCallback((e) => {
+    handleSubmit(dispatch)(e);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (formState.submitted) {
+      onSubmit(formState);
+    }
+  }, [formState.submitted]);
 
   return (
     <div className={styles.container}>
       <h1>Using Reducer for field control</h1>
-      <form id={formId} onSubmit={onSubmit}>
+      <form id={formId} onSubmit={doSubmit}>
         <section className={styles.fieldSection}>
           <div className={styles.field}>
             <label>Name</label>
             <input type="text"
                    {...hooks.get('name') || {}}
-                   {...fieldValues(formState, 'name')}
+                   {...inputValues(formState, 'name')}
             />
           </div>
           <FormErrorMessage name="name"
@@ -45,7 +54,7 @@ export default function ReducerForm() {
             <label>Phone Number</label>
             <input type="text"
                    {...hooks.get('phone') || {}}
-                   {...fieldValues(formState, 'phone')}
+                   {...inputValues(formState, 'phone')}
             />
           </div>
           <FormErrorMessage name="phone"
@@ -58,7 +67,7 @@ export default function ReducerForm() {
             <label>New Password</label>
             <input type="text"
                    {...hooks.get('password') || {}}
-                   {...fieldValues(formState, 'password')}
+                   {...inputValues(formState, 'password')}
             />
           </div>
           <FormErrorMessage name="password"
@@ -67,10 +76,11 @@ export default function ReducerForm() {
         </section>
 
         <section>
-          <button className={styles.submitButton} type="submit">Submit</button>
+          <button className={styles.submitButton} onClick={doSubmit} type="submit">Submit</button>
         </section>
       </form>
 
+      <h2>Current Reducer Value</h2>
       <code>
         <pre>
         {JSON.stringify(formState, true,2)}

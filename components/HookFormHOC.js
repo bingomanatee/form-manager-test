@@ -1,41 +1,55 @@
 import { useForm } from "react-hook-form"
-import { useCallback, useMemo, useState } from "react"
-import uniqueContext from "@/components/uniqueContext"
+import { useCallback, useState } from "react"
+import { ariaFields, errorFieldName, inputId } from "@/lib/utils"
 
-export default function HookFormHOC(Component, { baseFormId, onSubmit }) {
-
+/**
+ * This handles some of the maneuvers necessary to use our current tempo with
+ * the RHF input
+ *
+ * The primary shift is that instead of using the dynamic errors exposed by
+ * formState, we use an error
+ *
+ * @param Component
+ * @param formId
+ * @param onSubmit
+ * @returns {function({})}
+ * @constructor
+ */
+export default function HookFormHOC(Component, { formId, onSubmit }) {
   const DecoratedForm = ({}) => {
-    const { register, handleSubmit } = useForm({ mode: 'onSubmit' });
+    const { register, handleSubmit } = useForm({ mode: 'onSubmit' })
 
-    const formId = useMemo(() => uniqueContext(baseFormId), [])
     // a 'shadow' error collection set only by the onError below
-    const [errorsOnSubmit, setEOS] = useState({})
-    // a cancel proxy to allow for cancellation of the blur respons
+    const [errors, setErrors] = useState({})
+    // a "pointer" to the field blur
+    // to allow for cancellation of the blur response
     const [handleFieldBlurTimeout, setHandleFieldBlurTimeout] = useState(0)
-
+    const [submitted, setSubmitted] = useState(false)
     // ------------------ form submission hooks -------------
     const handleOnSubmit = useCallback((data, e) => {
       e.preventDefault()
       onSubmit(data)
+      setSubmitted(true)
       if (handleFieldBlurTimeout) {
         clearTimeout(handleFieldBlurTimeout)
         setHandleFieldBlurTimeout(null)
       }
-      setEOS({})
-    }, [setEOS, handleFieldBlurTimeout])
+      setErrors({})
+    }, [setErrors, handleFieldBlurTimeout])
 
-    const onError = useCallback((errors, e) => {
+    const onError = useCallback((formErrors, e) => {
       e.preventDefault()
       if (handleFieldBlurTimeout) {
         clearTimeout(handleFieldBlurTimeout)
         setHandleFieldBlurTimeout(null)
       }
-      setEOS(errors)
-    }, [setEOS, handleFieldBlurTimeout])
+      setErrors(formErrors)
+    }, [setErrors, handleFieldBlurTimeout])
+
     // ----------------- asserting shadow error clearing on blur
     const handleFieldBlur = useCallback((e) => {
       const name = e.target.name
-      const currentEOS = errorsOnSubmit
+      const currentEOS = errors
       /*
       in order not to "shortcut" the form submission the "shadow error"
       has to be cleared slightly after the field is blurred. However,
@@ -44,20 +58,27 @@ export default function HookFormHOC(Component, { baseFormId, onSubmit }) {
       WHILE the field has focus.
        */
       setHandleFieldBlurTimeout(setTimeout(() => {
-        if (errorsOnSubmit === currentEOS) {
-          setEOS({ ...errorsOnSubmit, [name]: undefined })
+        if (errors === currentEOS) {
+          setErrors({ ...errors, [name]: undefined })
         }
       }, 200))
 
-    }, [errorsOnSubmit, setEOS])
+    }, [errors, setErrors])
+
+    const getAriaFields = (name) => {
+      const invalid = errors[name] ? 'true' : 'false'
+      return ariaFields(formId, name, invalid)
+    }
 
     /**
      * this method "injects" the handleFieldBlur hook as a peer of
      * the onBlur hook returned by register.
-     * It also injects a unique ID, and sets the aria-describe-by target
+     * It also injects a unique ID,
      */
     const decorateHooks = useCallback((registerHandlers) => {
       const { onBlur: oldOnBlur, name } = registerHandlers
+      const arias = ariaFields(formId, name, false)
+      delete arias['aria-invalid']
       return {
         ...registerHandlers,
         onBlur: (...args) => {
@@ -66,24 +87,22 @@ export default function HookFormHOC(Component, { baseFormId, onSubmit }) {
           }
           handleFieldBlur(...args)
         },
-        id: `${formId}__${name}`,
-        'aria-describedby': `${formId}__${name}__errors`
+        id: inputId(formId, name)
       }
-    }, [handleFieldBlur])
-
-    const ariaInvalid = (name) => {
-      const invalid = errorsOnSubmit[name] ? 'true' : 'false'
-      return { ['aria-invalid']: invalid }
-    }
+    }, [handleFieldBlur, formId])
 
     return (
-      <Component register={register}
-                 ariaInvalid={ariaInvalid}
-                 decorateHooks={decorateHooks}
-                 formId={formId}
-                 errors={errorsOnSubmit}
-                 onSubmit={handleSubmit(handleOnSubmit, onError)}/>
+      <>
+        <Component register={register}
+                   getAriaFields={getAriaFields}
+                   decorateHooks={decorateHooks}
+                   formId={formId}
+                   errors={errors}
+                   onSubmit={handleSubmit(handleOnSubmit, onError)}/>
+        {submitted && <p>Form Data submitted</p>}
+      </>
+
     )
   }
-  return DecoratedForm;
+  return DecoratedForm
 }

@@ -1,9 +1,10 @@
 import styles from './form-error.module.scss'
 import { ErrorMessage } from '@hookform/error-message'
 import { memo } from "react"
+import { errorFieldName } from "@/lib/utils"
 
 function BaseFormErrorMessage({ message, name, formId }) {
-  return message ? <div id={`${formId}__${name}__errors`} role="alert" className={styles.error}>{message}</div> : null;
+  return message ? <div id={errorFieldName(formId, name)} role="alert" className={styles.error}>{message}</div> : null;
 }
 
 export const FormErrorMessage = memo(BaseFormErrorMessage);

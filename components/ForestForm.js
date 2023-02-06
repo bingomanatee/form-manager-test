@@ -1,13 +1,13 @@
 import styles from '../styles/form.module.scss'
 import { FormErrorMessage } from "@/components/ReactHookFormError"
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
-import { config } from "@/components/config"
-import forestFormModelFactory from "@/components/forestFormModelFactory"
-import uniqueContext from "@/components/uniqueContext"
+import { config } from "@/lib/config"
+import forestFormModelFactory from "@/lib/forestFormModelFactory"
 import debounce from 'lodash.debounce';
 
+const formId = 'sample-reducer-form';
+
 export default function ForestForm() {
-  const formId = useMemo(() => uniqueContext('sample-reducer-form'), [])
 
   const [formValue, setFormValue] = useState(false)
   const formState = useMemo(() =>
@@ -21,7 +21,7 @@ export default function ForestForm() {
   }, [setFormValue, formState])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const delayedSubmit = useCallback(debounce(formState.do.submit, 500), [formState]);
+  const delayedSubmit = useCallback(debounce(formState.do.submit, 200), [formState]);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();

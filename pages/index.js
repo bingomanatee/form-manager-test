@@ -17,19 +17,74 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico"/>
       </Head>
       <main>
-        <Navigation />
+        <Navigation/>
         <div>
+          <section className="hero">
+
           <p>
             Example of using different mechanics for form control
           </p>
           <ul>
             <li>
-              <Link href="/react-hook-form">React Hook Form</Link>
+              <Link href="/react-hook-form">React Hook Form</Link>: a form system
+              using&nbsp;<a href="https://react-hook-form.com/"
+                            target="RHF">&nbsp;React Hook Forms</a>
             </li>
             <li>
-              <Link href="/reducer-form">Reducer Form</Link>
+              <Link href="/reducer-form">Reducer Form</Link> using&nbsp;
+              <a href="https://reactjs.org/docs/hooks-reference.html#usereducer"
+                 target="react-reducers">native reducer hooks</a>&nbsp;
+              to produce the same effect
+            </li>
+            <li>
+              <Link href="/forest-form">Forest Form</Link>
+              using&nbsp;<a href="https://forest2-docs.vercel.app/"
+                            target="forest">@wonderlandlabs/forest</a>&nbsp;
+              an RxJS based state engine
             </li>
           </ul>
+        </section>
+
+          <article>
+            <p>In our <em>current</em> interpretation of error handling in forms
+              we have the following stipulations:</p>
+            <ol>
+              <li>Errors are not displayed until the form is submitted</li>
+              <li>Once the form is submitted the errors are displayed on a per-field basis</li>
+              <li>Errors are then <em>frozen</em> on a <em>per-field</em> basis until the field is <em>blurred</em></li>
+              <li>Once a field is <em>blurred</em> its error is erased (<strong>not</strong> evaluated based on current
+                value)
+              </li>
+            </ol>
+            <p>This means that errors are <em>extremely not stateless</em> -- they are driven by a
+              very specific update order, and must be locked in to respect the order of operations.</p>
+            <p><img src="./form_state.svg" alt="Form State"/></p>
+            <h2>Aria requirements</h2>
+            <p>Additionally, it is best if we have a relationship between the error fields and the
+              form elements.
+              This is done by establishing an <code>aria-described-by=&lt;error-field-id&gt;</code> property in the
+              input
+              that points to the aria field along with an <code>aria-invaid=(true|false)</code> property, and
+              a <code>rel=alert</code>
+              property in the Error component.</p>
+            <p>An FormErrorMessage component and a set of linked id factory in utils helps
+              establish this across
+              the board; for React Hook Forms, a ReactHookFormError component decorates this with a few listeners
+              for fixed &quot;error types&quot; produced by the RHF API, and a message keys lookup table for mapping
+              specialized keys to specialized text messages.</p>
+            <h2>A common quirk</h2>
+            <p>There seems to be an interesting across-the-system error in which the hiding
+              of the error accomplished by the onBlur handler seems to short circuit the
+              form submission; in the RHF version I put a slight time delay
+              on this (cancellable by the submit handler) but it does seem to pop in once in a while.</p>
+            <h2>Controlled components</h2>
+            <p>All the systems herein have controlled components;this is implicit in React Hook
+              form and just for parity was enforced in other systems.
+              In order for there to be both real-time and persistent error messages,
+              the displayed error is exposed as <code>.error</code> and the real-time error as <code>.valueError</code>.
+              The former field (<code>.error</code>) is erased via <code>onBlur</code> listeners in state.
+            </p>
+          </article>
         </div>
       </main>
     </>

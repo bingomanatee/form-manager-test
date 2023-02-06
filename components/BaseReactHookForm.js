@@ -1,7 +1,7 @@
 import styles from '../styles/form.module.scss'
 import ReactHookFormError from "@/components/ReactHookFormError"
 
-export default function BaseReactHookForm({ onSubmit, register, decorateHooks, ariaInvalid, formId, errors }) {
+export default function BaseReactHookForm({ onSubmit, register, decorateHooks, getAriaFields, formId, errors }) {
   return (
     <div className={styles.container}>
       <h1>Using React Hook Form for field control</h1>
@@ -11,7 +11,7 @@ export default function BaseReactHookForm({ onSubmit, register, decorateHooks, a
             <label>Name</label>
             <input type="text"
                    {...decorateHooks(register('name', { required: true }))}
-                   {...ariaInvalid('name')}
+                   {...getAriaFields('name')}
             />
           </div>
           <ReactHookFormError formId={formId} name="name" errors={errors}/>
@@ -25,7 +25,7 @@ export default function BaseReactHookForm({ onSubmit, register, decorateHooks, a
                      required: true,
                      pattern: /[\d]{3}-[\d]{3}-[\d]{4}/
                    }))}
-                   {...ariaInvalid('phone')}
+                   {...getAriaFields('phone')}
             />
           </div>
           <ReactHookFormError formId={formId}
@@ -46,7 +46,7 @@ export default function BaseReactHookForm({ onSubmit, register, decorateHooks, a
                        hasUppercase: (string) => /[A-Z]/.test(string)
                      }
                    }))}
-                   {...ariaInvalid('password')}
+                   {...getAriaFields('password')}
             />
           </div>
           <ReactHookFormError formId={formId}
